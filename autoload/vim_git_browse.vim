@@ -28,6 +28,28 @@ function! s:GetRelativePath(git_root_path) abort
   return substitute(l:absolute_path, a:git_root_path . '/', '', '')
 endfunction
 
+function! s:GetLatestCommitHashRemote(branch_name) abort
+  let l:origin_branch_name = 'origin/' . a:branch_name
+  return system('git rev-parse ' . l:origin_branch_name . ' | tr -d "\n"')
+endfunction
+
+function! s:GetGitLabMergeRequestUrl(commit_hash) abort
+  let l:merge_request = system('git ls-remote origin "*/merge-requests/*/head" | grep ' . a:commit_hash . ' | tr -d "\n"')
+  if empty(l:merge_request)
+    return v:null
+  endif
+
+  let l:merge_request_id = system('echo ' . l:merge_request . ' | awk -F''/'' ''{print $3}'' | tr -d "\n"')
+  let l:git_remote_url = s:GetGitRemoteUrl()
+
+  if l:git_remote_url[strlen(l:git_remote_url) - 1] != '/'
+    let l:git_remote_url = l:git_remote_url . '/'
+  endif
+  let merge_request_url = l:git_remote_url . 'merge_requests/' . l:merge_request_id
+
+  return merge_request_url
+endfunction
+
 function! s:OpenGitRepositoryInBrowser(visual_mode, git_remote_url, branch_name, git_root_path) abort
   if s:ShouldOpenGitFile() == v:false
      let l:git_url = a:git_remote_url . '/tree/' . a:branch_name
@@ -61,6 +83,19 @@ function! vim_git_browse#GitBrowse(visual_mode) abort
   let l:branch_name = s:GetCurrentBranchName()
 
   call s:OpenGitRepositoryInBrowser(a:visual_mode, l:git_remote_url, l:branch_name, l:git_root_path)
+endfunction
+
+function! vim_git_browse#GitPullRequest() abort
+  let l:git_root_path = s:GetGitRootPath()
+  if l:git_root_path is v:null
+    echo '[vim-git-browse] Please use in git project'
+  endif
+
+  let l:branch_name = s:GetCurrentBranchName()
+  let l:latest_commit_hash = s:GetLatestCommitHashRemote(l:branch_name)
+  let l:merge_request_url = s:GetGitLabMergeRequestUrl(l:latest_commit_hash)
+
+  call system('open ' . l:merge_request_url)
 endfunction
 
 let &cpo = s:cpo_save
