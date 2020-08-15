@@ -8,7 +8,16 @@ let s:git_site_enum = { 'github': s:github_value, 'gitlab': s:gitlab_value, 'bit
 
 function! s:GetGitRemoteUrl()
   let l:git_remote_url = system('git remote get-url origin | tr -d "\n"')
-  return l:git_remote_url[0:strlen(git_remote_url) - 5]
+  let l:git_remote_url = l:git_remote_url[0:strlen(git_remote_url) - 5]
+
+  let l:index = stridx(l:git_remote_url, '@bitbucket')
+  if l:index == -1
+    return l:git_remote_url
+  endif
+
+  " Handle bitbucket url
+  let l:git_remote_url = 'https://' . l:git_remote_url[l:index + 1:]
+  return l:git_remote_url
 endfunction
 
 function! s:GetGitRootPath() abort
