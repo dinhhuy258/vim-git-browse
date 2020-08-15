@@ -1,7 +1,7 @@
 # vim-git-browse
-You get tired of searching your file on your git repository.
-You feel sick of searching your pull/ merge request.
-You get mad at all steps you need to take to create a pull/ merge request.
+- You get tired of searching your file on your git repository.
+- You feel sick of searching your pull/ merge request.
+- You get mad at all steps you need to take to create a pull/ merge request.
 `vim-git-browse` plugin is for you, with this plugin you can get rid of all of the annoying steps for creating a pull/merge request, viewing a file, opening a merge/ pull request on your git repository
 
 ## Installation
