@@ -6,6 +6,21 @@ let s:gitlab_value = 2
 let s:bitbucket_value = 3
 let s:git_site_enum = { 'github': s:github_value, 'gitlab': s:gitlab_value, 'bitbucket': s:bitbucket_value }
 
+if !exists('g:target_branch')
+  let g:target_branch = 'master'
+endif
+
+function! s:OpenUrl(url) abort
+  let l:url = escape(a:url, "%|*#")
+  if has('win16') || has('win32') || has('win64')
+    exe '!start cmd /cstart /b ' . l:url . ''
+  elseif has('mac') || has('macunix') || has('gui_macvim')
+    exe 'silent !open "'. l:url . '"'
+  else
+    exe 'silent! !' . g:open_url_browser_default . ' "' . l:url . '" &> /dev/null &'
+  endif
+endfunction
+
 function! s:GetGitRemoteUrl()
   let l:git_remote_url = system('git remote get-url origin | tr -d "\n"')
   let l:git_remote_url = l:git_remote_url[0:strlen(git_remote_url) - 5]
@@ -61,10 +76,7 @@ function! s:GetGitLabMergeRequestUrl(git_remote_url, commit_hash) abort
   let l:merge_request_id = system('echo ' . l:merge_request . ' | awk -F''/'' ''{print $3}'' | tr -d "\n"')
   let l:git_remote_url = a:git_remote_url
 
-  if l:git_remote_url[strlen(l:git_remote_url) - 1] != '/'
-    let l:git_remote_url = l:git_remote_url . '/'
-  endif
-  let merge_request_url = l:git_remote_url . 'merge_requests/' . l:merge_request_id
+  let merge_request_url = l:git_remote_url . '/merge_requests/' . l:merge_request_id
 
   return merge_request_url
 endfunction
@@ -74,11 +86,11 @@ function! s:OpenGitRootInBrowser(git_remote_url, branch_name) abort
 
   if l:git_site_type == s:gitlab_value || l:git_site_type == s:github_value
     let l:git_url = a:git_remote_url . '/tree/' . a:branch_name
-    call system('open ' . l:git_url)
+    call s:OpenUrl(l:git_url)
     return
   elseif l:git_site_type == s:bitbucket_value
     let l:git_url = a:git_remote_url . '/src/' . a:branch_name . '/'
-    call system('open ' . l:git_url)
+    call s:OpenUrl(l:git_url)
     return
   else
     echo '[vim-git-browse] Git site not supported'
@@ -126,12 +138,12 @@ function! s:OpenGitFileInBrowser(git_remote_url, branch_name, relative_path, vis
     let l:last_line = getpos("'>")[1]
     let l:git_url = s:GetGitUrlWithLine(l:git_url, l:first_line, l:last_line, l:git_site_type)
 
-    call system('open ' . l:git_url)
+    call s:OpenUrl(l:git_url)
   else
     let l:line = line('.')
     let l:git_url = s:GetGitUrlWithLine(l:git_url, l:line, l:line, l:git_site_type)
 
-    call system('open ' . l:git_url)
+    call s:OpenUrl(l:git_url)
   endif
 endfunction
 
@@ -159,6 +171,7 @@ function! vim_git_browse#GitBrowse(visual_mode) abort
   let l:git_root_path = s:GetGitRootPath()
   if l:git_root_path is v:null
     echo '[vim-git-browse] Please use in git project'
+    return
   endif
 
   let l:git_remote_url = s:GetGitRemoteUrl()
@@ -171,6 +184,7 @@ function! vim_git_browse#GitPullRequest() abort
   let l:git_root_path = s:GetGitRootPath()
   if l:git_root_path is v:null
     echo '[vim-git-browse] Please use in git project'
+    return
   endif
 
   let l:branch_name = s:GetCurrentBranchName()
@@ -195,7 +209,34 @@ function! vim_git_browse#GitPullRequest() abort
     return
   endif
 
-  call system('open ' . l:merge_request_url)
+  call s:OpenUrl(l:merge_request_url)
+endfunction
+
+function! vim_git_browse#GitCreatePullRequest() abort
+  let l:git_root_path = s:GetGitRootPath()
+  if l:git_root_path is v:null
+    echo '[vim-git-browse] Please use in git project'
+    return
+  endif
+
+  let l:branch_name = s:GetCurrentBranchName()
+  if l:branch_name == g:target_branch
+    echo '[vim-git-browse] Source branch can not be the same as target branch'
+    return
+  endif
+
+  let l:git_remote_url = s:GetGitRemoteUrl()
+  let l:create_merge_request_url = v:null
+  let l:git_site_type = s:GetGitSiteType(l:git_remote_url)
+
+  if l:git_site_type == s:gitlab_value
+    let l:create_merge_request_url = l:git_remote_url . '/merge_requests/new?utf8=%E2%9C%93&merge_request[source_branch]=' . l:branch_name . '&merge_request[target_branch]=' . g:target_branch
+  else
+    echo '[vim-git-browse] Git site not supported'
+    return
+  endif
+
+  call s:OpenUrl(l:create_merge_request_url)
 endfunction
 
 let &cpo = s:cpo_save
