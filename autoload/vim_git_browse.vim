@@ -30,7 +30,12 @@ endfunction
 
 function! s:GetLatestCommitHashRemote(branch_name) abort
   let l:origin_branch_name = 'origin/' . a:branch_name
-  return system('git rev-parse ' . l:origin_branch_name . ' | tr -d "\n"')
+  let l:commit_hash = system('git rev-parse ' . l:origin_branch_name . ' | tr -d "\n"')
+  if l:commit_hash =~ '\fatal:'
+    return v:null
+  endif
+
+  return l:commit_hash
 endfunction
 
 function! s:GetGitLabMergeRequestUrl(commit_hash) abort
@@ -93,8 +98,16 @@ function! vim_git_browse#GitPullRequest() abort
 
   let l:branch_name = s:GetCurrentBranchName()
   let l:latest_commit_hash = s:GetLatestCommitHashRemote(l:branch_name)
+  if l:latest_commit_hash is v:null
+    echo '[vim-git-browse] Could not find remote branch ' . l:branch_name
+    return
+  endif
   let l:merge_request_url = s:GetGitLabMergeRequestUrl(l:latest_commit_hash)
-
+  if l:merge_request_url is v:null
+    echo '[vin-git-browse] Could not find pull/merge request for branch ' . l:branch_name
+    return
+  endif
+  "
   call system('open ' . l:merge_request_url)
 endfunction
 
