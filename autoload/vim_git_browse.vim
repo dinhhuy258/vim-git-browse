@@ -21,8 +21,17 @@ function! s:OpenUrl(url) abort
   endif
 endfunction
 
+function! s:CallGitCommand(command) abort
+  let l:git_command_result = system(a:command)
+  if l:git_command_result =~ '\fatal:'
+    return v:null
+  endif
+
+  return l:git_command_result
+endfunction
+
 function! s:GetGitRemoteUrl()
-  let l:git_remote_url = system('git remote get-url origin | tr -d "\n"')
+  let l:git_remote_url = s:CallGitCommand('git remote get-url origin | tr -d "\n"')
   let l:git_remote_url = l:git_remote_url[0:strlen(git_remote_url) - 5]
 
   let l:index = stridx(l:git_remote_url, '@bitbucket')
@@ -36,16 +45,11 @@ function! s:GetGitRemoteUrl()
 endfunction
 
 function! s:GetGitRootPath() abort
-  let l:git_root_path = system('git rev-parse --show-toplevel | tr -d "\n"')
-  if l:git_root_path =~ '\fatal:'
-    return v:null
-  endif
-
-  return l:git_root_path
+  return s:CallGitCommand('git rev-parse --show-toplevel | tr -d "\n"')
 endfunction
 
 function! s:GetCurrentBranchName() abort
-  return system('git rev-parse --abbrev-ref HEAD | tr -d "\n"')
+  return s:CallGitCommand('git rev-parse --abbrev-ref HEAD | tr -d "\n"')
 endfunction
 
 function! s:ShouldOpenGitFile() abort
@@ -59,12 +63,22 @@ endfunction
 
 function! s:GetLatestCommitHashRemote(branch_name) abort
   let l:origin_branch_name = 'origin/' . a:branch_name
-  let l:commit_hash = system('git rev-parse ' . l:origin_branch_name . ' | tr -d "\n"')
-  if l:commit_hash =~ '\fatal:'
+
+  return s:CallGitCommand('git rev-parse ' . l:origin_branch_name . ' | tr -d "\n"')
+endfunction
+
+function! s:GetGithubPullRequestUrl(git_remote_url, commit_hash) abort
+  let l:pull_request = system('git ls-remote origin "refs/pull/*/head" | grep ' . a:commit_hash . ' | tr -d "\n"')
+  if empty(l:pull_request)
     return v:null
   endif
 
-  return l:commit_hash
+  let l:pull_request_id = system('echo ' . l:pull_request . ' | awk -F''/'' ''{print $3}'' | tr -d "\n"')
+  let l:git_remote_url = a:git_remote_url
+
+  let l:pull_request_url = l:git_remote_url . '/pull/' . l:pull_request_id
+
+  return l:pull_request_url
 endfunction
 
 function! s:GetGitLabMergeRequestUrl(git_remote_url, commit_hash) abort
@@ -76,9 +90,9 @@ function! s:GetGitLabMergeRequestUrl(git_remote_url, commit_hash) abort
   let l:merge_request_id = system('echo ' . l:merge_request . ' | awk -F''/'' ''{print $3}'' | tr -d "\n"')
   let l:git_remote_url = a:git_remote_url
 
-  let merge_request_url = l:git_remote_url . '/merge_requests/' . l:merge_request_id
+  let l:merge_request_url = l:git_remote_url . '/merge_requests/' . l:merge_request_id
 
-  return merge_request_url
+  return l:merge_request_url
 endfunction
 
 function! s:OpenGitRootInBrowser(git_remote_url, branch_name) abort
@@ -199,6 +213,8 @@ function! vim_git_browse#GitPullRequest() abort
 
   if l:git_site_type == s:gitlab_value
     let l:merge_request_url = s:GetGitLabMergeRequestUrl(l:git_remote_url, l:latest_commit_hash)
+  elseif l:git_site_type == s:github_value
+    let l:merge_request_url = s:GetGithubPullRequestUrl(l:git_remote_url, l:latest_commit_hash)
   else
     echo '[vim-git-browse] Git site not supported'
     return
@@ -231,6 +247,8 @@ function! vim_git_browse#GitCreatePullRequest() abort
 
   if l:git_site_type == s:gitlab_value
     let l:create_merge_request_url = l:git_remote_url . '/merge_requests/new?utf8=%E2%9C%93&merge_request[source_branch]=' . l:branch_name . '&merge_request[target_branch]=' . g:target_branch
+  elseif l:git_site_type == s:github_value
+    let l:create_merge_request_url = l:git_remote_url . '/compare/' . g:target_branch . '...' . l:branch_name
   else
     echo '[vim-git-browse] Git site not supported'
     return
