@@ -36,7 +36,7 @@ endfunction
 
 function! s:GetGitRemoteUrl()
   let l:git_remote_url = s:CallGitCommand('git remote get-url origin | tr -d "\n"')
-  let l:git_remote_url = l:git_remote_url[0:strlen(git_remote_url) - 5]
+  let l:git_remote_url = system('echo ' . l:git_remote_url . ' | sed -Ee ''s#(git@|git://)#https://#'' -e ''s@com:@com/@'' -e ''s%\.git$%%'' | tr -d "\n"')
 
   let l:index = stridx(l:git_remote_url, '@bitbucket')
   if l:index == -1
