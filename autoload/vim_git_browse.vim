@@ -36,16 +36,7 @@ endfunction
 
 function! s:GetGitRemoteUrl()
   let l:git_remote_url = s:CallGitCommand('git remote get-url origin | tr -d "\n"')
-  let l:git_remote_url = system('echo ' . l:git_remote_url . ' | sed -Ee ''s#(git@|git://)#https://#'' -e ''s@com:@com/@'' -e ''s%\.git$%%'' | tr -d "\n"')
-
-  let l:index = stridx(l:git_remote_url, '@bitbucket')
-  if l:index == -1
-    return l:git_remote_url
-  endif
-
-  " Handle bitbucket url
-  let l:git_remote_url = 'https://' . l:git_remote_url[l:index + 1:]
-  return l:git_remote_url
+  return system('echo ' . l:git_remote_url . ' | sed -Ee ''s#(git@|git://)#https://#'' -e ''s@com:@com/@'' -e ''s%\.git$%%'' -e ''s#(https://.*bitbucket)#https://bitbucket#'' -e ''s#(bitbucket.org:)#bitbucket.org/#'' | tr -d "\n"')
 endfunction
 
 function! s:GetGitRootPath() abort
