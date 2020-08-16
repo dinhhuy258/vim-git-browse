@@ -10,6 +10,7 @@
 ### Dependencies
 - git
 - awk
+- sed
 
 ### Install
 ```
@@ -22,14 +23,30 @@ The default mapping is
 - <Leader>go to open the file in the git repository
 - <Leader>gp to view a pull/merge request 
 - <Leader>gc to create a pull/merge request
+  
+If you want to make your own custom keymap, then put the following in your `.vimrc`
+```
+let g:vim_git_browse_use_default_keymap = 0
+nnoremap <Leader>go :<C-u> call vim_git_browse#GitBrowse(v:false)<CR>
+xnoremap <Leader>go :<C-u> call vim_git_browse#GitBrowse(v:true)<CR>
+
+nnoremap <Leader>gp :<C-u> call vim_git_browse#GitPullRequest()<CR>
+nnoremap <Leader>gc :<C-u> call vim_git_browse#GitCreatePullRequest()<CR>
+```
+
+## Vim variables
+
+- `g:vim_git_browse_use_default_keymap` use the default key mappings (default: `1`)
+- `g:vim_git_browse_target_branch` the target branch for creating pull/merge request (default: `master`)
+- `g:open_url_browser_default` changes default browser for linux user (default: `xdg-open`)
 
 ## Features
 
 | Name | Github | Gitlab | Bitbucket |
 | ---- | ------ | ---- | ---- |
 | Open project | :white_check_mark: | :white_check_mark: | :white_check_mark: |
-| View pull request |  | :white_check_mark: |  |
-| Create pull request |  | :white_check_mark: |  |
+| View pull request | :white_check_mark: | :white_check_mark: |  |
+| Create pull request | :white_check_mark: | :white_check_mark: |  |
 
 
 ## Issues
