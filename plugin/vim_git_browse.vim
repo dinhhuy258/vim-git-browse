@@ -4,7 +4,7 @@ endif
 
 let s:vim_git_browse_loaded = 1
 
-if get(g:, 'vintellij_use_default_keymap', 1) == 1
+if get(g:, 'vim_git_browse_use_default_keymap', 1) == 1
   nnoremap <Leader>go :<C-u> call vim_git_browse#GitBrowse(v:false)<CR>
   xnoremap <Leader>go :<C-u> call vim_git_browse#GitBrowse(v:true)<CR>
 
