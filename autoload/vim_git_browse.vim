@@ -10,6 +10,10 @@ if !exists('g:target_branch')
   let g:target_branch = 'master'
 endif
 
+if !exists('g:open_url_browser_default')
+  let g:open_url_browser_default = 'xdg-open'
+endif
+
 function! s:OpenUrl(url) abort
   let l:url = escape(a:url, "%|*#")
   if has('win16') || has('win32') || has('win64')
