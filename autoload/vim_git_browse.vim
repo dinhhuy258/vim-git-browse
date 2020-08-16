@@ -6,12 +6,12 @@ let s:gitlab_value = 2
 let s:bitbucket_value = 3
 let s:git_site_enum = { 'github': s:github_value, 'gitlab': s:gitlab_value, 'bitbucket': s:bitbucket_value }
 
-if !exists('g:target_branch')
-  let g:target_branch = 'master'
+if !exists('g:vim_git_browse_target_branch')
+  let g:vim_git_browse_target_branch = 'master'
 endif
 
-if !exists('g:open_url_browser_default')
-  let g:open_url_browser_default = 'xdg-open'
+if !exists('g:vim_git_browse_open_url_browser_default')
+  let g:vim_git_browse_open_url_browser_default = 'xdg-open'
 endif
 
 function! s:OpenUrl(url) abort
@@ -21,7 +21,7 @@ function! s:OpenUrl(url) abort
   elseif has('mac') || has('macunix') || has('gui_macvim')
     exe 'silent !open "'. l:url . '"'
   else
-    exe 'silent! !' . g:open_url_browser_default . ' "' . l:url . '" &> /dev/null &'
+    exe 'silent! !' . g:vim_git_browse_open_url_browser_default . ' "' . l:url . '" &> /dev/null &'
   endif
 endfunction
 
@@ -231,7 +231,7 @@ function! vim_git_browse#GitCreatePullRequest() abort
   endif
 
   let l:branch_name = s:GetCurrentBranchName()
-  if l:branch_name == g:target_branch
+  if l:branch_name == g:vim_git_browse_target_branch
     echo '[vim-git-browse] Source branch can not be the same as target branch'
     return
   endif
@@ -241,9 +241,9 @@ function! vim_git_browse#GitCreatePullRequest() abort
   let l:git_site_type = s:GetGitSiteType(l:git_remote_url)
 
   if l:git_site_type == s:gitlab_value
-    let l:create_merge_request_url = l:git_remote_url . '/merge_requests/new?utf8=%E2%9C%93&merge_request[source_branch]=' . l:branch_name . '&merge_request[target_branch]=' . g:target_branch
+    let l:create_merge_request_url = l:git_remote_url . '/merge_requests/new?utf8=%E2%9C%93&merge_request[source_branch]=' . l:branch_name . '&merge_request[target_branch]=' . g:vim_git_browse_target_branch
   elseif l:git_site_type == s:github_value
-    let l:create_merge_request_url = l:git_remote_url . '/compare/' . g:target_branch . '...' . l:branch_name
+    let l:create_merge_request_url = l:git_remote_url . '/compare/' . g:vim_git_browse_target_branch . '...' . l:branch_name
   else
     echo '[vim-git-browse] Git site not supported'
     return
