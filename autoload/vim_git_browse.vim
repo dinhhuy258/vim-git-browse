@@ -63,7 +63,7 @@ function! s:GetLatestCommitHashRemote(branch_name) abort
 endfunction
 
 function! s:GetGithubPullRequestUrl(git_remote_url, commit_hash) abort
-  let l:pull_request = system('git ls-remote origin "refs/pull/*/head" | grep ' . a:commit_hash . ' | tr -d "\n"')
+  let l:pull_request = s:CallGitCommand('git ls-remote origin "refs/pull/*/head" | grep ' . a:commit_hash . ' | tr -d "\n"')
   if empty(l:pull_request)
     return v:null
   endif
@@ -77,7 +77,7 @@ function! s:GetGithubPullRequestUrl(git_remote_url, commit_hash) abort
 endfunction
 
 function! s:GetGitLabMergeRequestUrl(git_remote_url, commit_hash) abort
-  let l:merge_request = system('git ls-remote origin "*/merge-requests/*/head" | grep ' . a:commit_hash . ' | tr -d "\n"')
+  let l:merge_request = s:CallGitCommand('git ls-remote origin "*/merge-requests/*/head" | grep ' . a:commit_hash . ' | tr -d "\n"')
   if empty(l:merge_request)
     return v:null
   endif
@@ -177,6 +177,7 @@ function! s:GetGitSiteType(git_remote_url) abort
 endfunction
 
 function! vim_git_browse#GitBrowse(visual_mode) abort
+  echo '[vim-git-browse] Opening git...'
   let l:git_root_path = s:GetGitRootPath()
   if l:git_root_path is v:null
     echo '[vim-git-browse] Please use in git project'
@@ -190,6 +191,7 @@ function! vim_git_browse#GitBrowse(visual_mode) abort
 endfunction
 
 function! vim_git_browse#GitPullRequest() abort
+  echo '[vim-git-browse] Opening pull request...'
   let l:git_root_path = s:GetGitRootPath()
   if l:git_root_path is v:null
     echo '[vim-git-browse] Please use in git project'
@@ -224,6 +226,7 @@ function! vim_git_browse#GitPullRequest() abort
 endfunction
 
 function! vim_git_browse#GitCreatePullRequest() abort
+  echo '[vim-git-browse] Creating pull request...'
   let l:git_root_path = s:GetGitRootPath()
   if l:git_root_path is v:null
     echo '[vim-git-browse] Please use in git project'
