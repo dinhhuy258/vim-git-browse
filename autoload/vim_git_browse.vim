@@ -218,7 +218,7 @@ function! vim_git_browse#GitPullRequest() abort
   endif
 
   if l:merge_request_url is v:null
-    echo '[vin-git-browse] Could not find pull/merge request for branch ' . l:branch_name
+    echo '[vim-git-browse] Could not find pull/merge request for branch ' . l:branch_name
     return 0
   endif
 
