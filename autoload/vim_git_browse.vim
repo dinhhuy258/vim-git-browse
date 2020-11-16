@@ -195,14 +195,14 @@ function! vim_git_browse#GitPullRequest() abort
   let l:git_root_path = s:GetGitRootPath()
   if l:git_root_path is v:null
     echo '[vim-git-browse] Please use in git project'
-    return
+    return 0
   endif
 
   let l:branch_name = s:GetCurrentBranchName()
   let l:latest_commit_hash = s:GetLatestCommitHashRemote(l:branch_name)
   if l:latest_commit_hash is v:null
     echo '[vim-git-browse] Could not find remote branch ' . l:branch_name
-    return
+    return 0
   endif
   let l:git_remote_url = s:GetGitRemoteUrl()
   let l:merge_request_url = v:null
@@ -214,15 +214,16 @@ function! vim_git_browse#GitPullRequest() abort
     let l:merge_request_url = s:GetGithubPullRequestUrl(l:git_remote_url, l:latest_commit_hash)
   else
     echo '[vim-git-browse] Git site not supported'
-    return
+    return 0
   endif
 
   if l:merge_request_url is v:null
-    echo '[vin-git-browse] Could not find pull/merge request for branch ' . l:branch_name
-    return
+    echo '[vim-git-browse] Could not find pull/merge request for branch ' . l:branch_name
+    return 0
   endif
 
   call s:OpenUrl(l:merge_request_url)
+  return 1
 endfunction
 
 function! vim_git_browse#GitCreatePullRequest() abort
@@ -230,13 +231,13 @@ function! vim_git_browse#GitCreatePullRequest() abort
   let l:git_root_path = s:GetGitRootPath()
   if l:git_root_path is v:null
     echo '[vim-git-browse] Please use in git project'
-    return
+    return 0
   endif
 
   let l:branch_name = s:GetCurrentBranchName()
   if l:branch_name == g:vim_git_browse_target_branch
     echo '[vim-git-browse] Source branch can not be the same as target branch'
-    return
+    return 0
   endif
 
   let l:git_remote_url = s:GetGitRemoteUrl()
@@ -249,10 +250,17 @@ function! vim_git_browse#GitCreatePullRequest() abort
     let l:create_merge_request_url = l:git_remote_url . '/compare/' . g:vim_git_browse_target_branch . '...' . l:branch_name
   else
     echo '[vim-git-browse] Git site not supported'
-    return
+    return 0
   endif
 
   call s:OpenUrl(l:create_merge_request_url)
+  return 1
+endfunction
+
+function! vim_git_browse#GitOpenPullRequest() abort
+  if !vim_git_browse#GitPullRequest()
+    call vim_git_browse#GitCreatePullRequest()
+  endif
 endfunction
 
 let &cpo = s:cpo_save
