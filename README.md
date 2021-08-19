@@ -1,3 +1,5 @@
+# Deprecated. Please use [git.nvim](https://github.com/dinhhuy258/git.nvim) instead.
+
 # vim-git-browse
 - You get tired of searching your file on your git repository.
 - You feel sick of searching your pull/ merge request.
